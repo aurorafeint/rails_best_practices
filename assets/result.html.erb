@@ -22,20 +22,6 @@
         margin: 10px 0;
         font-size: 14px;
       }
-      table th, table td {
-        padding: 4px;
-        border: 1px solid #D0D0D0;
-      }
-      table th {
-        background-color: #DFC;
-        color: #337022;
-      }
-      table td.filename {
-        color: #ED1556;
-      }
-      table tr:hover {
-        background-color: #FFFFC0;
-      }
       ul {
         clear: both;
         display: inline-block;
@@ -48,36 +34,28 @@
        float: left;
       }
     </style>
+    <link rel="stylesheet" type="text/css" href="assets/style.css" />
   </head>
   <body>
     <h1>rails_best_practices output</h1>
-    <p>
-      Please go to
-      <a href='http://rails-bestpractices.com' target='_blank'>http://rails-bestpractices.com</a>
-      to see more useful Rails Best Practices.
-    </p>
-    <p>
-      <% if @errors.empty? %>
-        No error found. Cool!
-      <% else %>
-        Found <%= @errors.size %> warnings.
-      <% end %>
-    </p>
     <ul>
       <% @error_types.each do |error_type| %>
         <li><input type="checkbox" value="<%= error_type.split(':').last %>" /><%= error_type.split(':').last %></li>
       <% end %>
     </ul>
-    <table>
-      <tr>
-        <th>Filename</th>
-        <th>Line Number</th>
-        <th>Warning Message</th>
-        <% if @git %>
-          <th>Git Commit</th>
-          <th>Git Username</th>
-        <% end %>
-      </tr>
+    <table class="tablesorter">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Line Number</th>
+          <th>Warning Message</th>
+          <% if @git %>
+            <th>Git Commit</th>
+            <th>Git Username</th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
       <% @errors.each do |error| %>
         <tr class="<%= error.type.split(':').last %>">
           <td class='filename'>
@@ -99,8 +77,10 @@
           <% end %>
         </tr>
       <% end %>
+      </tbody>
     </table>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
       $(function() {
         $('ul li').show();
@@ -113,6 +93,7 @@
             $('.'+$(this).val()).hide();
           }
         });
+        $('.tablesorter').tablesorter();
       });
     </script>
   </body>
