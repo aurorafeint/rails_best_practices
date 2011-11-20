@@ -28,19 +28,13 @@ module RailsBestPractices
     #   whose message is get, post, update or delete,
     #   then these custom routes are overuse.
     class OveruseRouteCustomizationsReview < Review
+      interesting_nodes :command_call, :method_add_block
+      interesting_files ROUTE_FILES
 
       VERBS = %w(get post update delete)
 
       def url
         "http://rails-bestpractices.com/posts/10-overuse-route-customizations"
-      end
-
-      def interesting_nodes
-        [:command_call, :method_add_block]
-      end
-
-      def interesting_files
-        ROUTE_FILES
       end
 
       def initialize(options = {})
@@ -84,7 +78,7 @@ module RailsBestPractices
         # it is just the count of member and collection custom routes.
         def member_and_collection_count_for_rails2(node)
           if "resources" == node.message.to_s
-            hash_node = node.arguments.all[1]
+            hash_node = node.arguments.all.last
             if hash_node && :bare_assoc_hash == hash_node.sexp_type
               member_node = hash_node.hash_value("member")
               collection_node = hash_node.hash_value("collection")
