@@ -24,10 +24,22 @@ module RailsBestPractices
         when "resource"
           add_resource_routes(node)
         when "get", "post", "put", "delete"
-          action_name = node.arguments.all.first.to_s
-          @routes.add_route(current_namespaces, current_resource_name, action_name)
+          first_argument = node.arguments.all.first
+          if current_resource_name.present?
+            action_name = first_argument.to_s
+            @routes.add_route(current_namespaces, current_resource_name, action_name)
+          else
+            if :bare_assoc_hash == first_argument.sexp_type
+              route_node = first_argument.hash_values.first
+              controller_name, action_name = route_node.to_s.split('#')
+            else
+              controller_name, action_name = first_argument.to_s.split('/')
+            end
+            @routes.add_route(current_namespaces, controller_name.underscore, action_name)
+          end
         when "match", "root"
           options = node.arguments.all.last
+          return if :string_literal == options.sexp_type
           if options.hash_value("controller").present?
             controller_name = options.hash_value("controller").to_s
             action_name = options.hash_value("action").present? ? options.hash_value("action").to_s : "*"
@@ -88,11 +100,11 @@ module RailsBestPractices
             action_names = if options.hash_value("only").present?
                              get_#{route_name}_actions(options.hash_value("only").to_object)
                            elsif options.hash_value("except").present?
-                             self.class.const_get(:#{route_name.upcase}_ACTIONS) - get_#{route_name}_actions(options.hash_value("except").to_object)
+                             self.class.const_get(:#{route_name.to_s.upcase}_ACTIONS) - get_#{route_name}_actions(options.hash_value("except").to_object)
                            else
-                             self.class.const_get(:#{route_name.upcase}_ACTIONS)
+                             self.class.const_get(:#{route_name.to_s.upcase}_ACTIONS)
                            end
-            Array(action_names).each do |action_name|
+            action_names.each do |action_name|
               @routes.add_route(current_namespaces, current_resource_name, action_name)
             end
 
@@ -117,11 +129,11 @@ module RailsBestPractices
         def get_#{route_name}_actions(action_names)
           case action_names
           when "all"
-            self.class.const_get(:#{route_name.upcase}_ACTIONS)
+            self.class.const_get(:#{route_name.to_s.upcase}_ACTIONS)
           when "none"
             []
           else
-            action_names
+            Array(action_names)
           end
         end
 

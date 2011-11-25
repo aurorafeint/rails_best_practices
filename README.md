@@ -1,6 +1,8 @@
 rails_best_practices
 ====================
 
+<a href="http://travis-ci.org/flyerhzm/rails_best_practices"><img src="https://secure.travis-ci.org/flyerhzm/rails_best_practices.png?branch=master" /></a>
+
 rails_best_practices is a code metric tool to check the quality of rails codes.
 
 Usage
@@ -67,18 +69,6 @@ Ruby 1.9
 
 or add in Gemfile
 
-    gem "rails_best_practices"
-
-if you still want to use rails_best_practices gem in ruby 1.8, please add ripper gem dependency before rails_best_practices.
-
-Ruby 1.8
-
-    gem install ripper
-    gem install rails_best_practices
-
-or add in Gemfile
-
-    gem "ripper"
     gem "rails_best_practices"
 
 Issue
