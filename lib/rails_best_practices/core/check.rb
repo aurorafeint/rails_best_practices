@@ -3,14 +3,13 @@ module RailsBestPractices
   module Core
     # A Check class that takes charge of checking the sexp.
     class Check
-
       ALL_FILES = /.*/
-      CONTROLLER_FILES = /controllers\/.*\.rb$/
+      CONTROLLER_FILES = /(controllers|cells)\/.*\.rb$/
       MIGRATION_FILES = /db\/migrate\/.*\.rb$/
       MODEL_FILES = /models\/.*\.rb$/
       MAILER_FILES = /models\/.*mailer\.rb$|mailers\/.*mailer\.rb/
-      VIEW_FILES = /views\/.*\.(erb|haml)$/
-      PARTIAL_VIEW_FILES = /views\/.*\/_.*\.(erb|haml)$/
+      VIEW_FILES = /(views|cells)\/.*\.(erb|haml)$/
+      PARTIAL_VIEW_FILES = /(views|cells)\/.*\/_.*\.(erb|haml)$/
       ROUTE_FILES = /config\/routes.*\.rb/
       SCHEMA_FILE = /db\/schema\.rb/
       HELPER_FILES = /helpers\/.*\.rb$/
@@ -227,9 +226,14 @@ module RailsBestPractices
               when "alias_method_chain"
                 method, feature = *node.arguments.all.map(&:to_s)
                 call_method("#{method}_with_#{feature}")
+              when /(before|after)_/
+                node.arguments.all.each { |argument| mark_used(argument) }
               else
                 mark_used(node.message)
-                node.arguments.all.each { |argument| mark_used(argument) }
+                last_argument = node.arguments.all.last
+                if last_argument.present? && :bare_assoc_hash == last_argument.sexp_type
+                  last_argument.hash_values.each { |argument_value| mark_used(argument_value) }
+                end
               end
             end
 
@@ -260,7 +264,7 @@ module RailsBestPractices
               when "try"
                 mark_used(node.arguments.all.first)
               when "send"
-                if [:symbol_literal, :string_literal].include?(node.arguments.all[0].sexp_type)
+                if [:symbol_literal, :string_literal].include?(node.arguments.all.first.sexp_type)
                   mark_used(node.arguments.all.first)
                 end
               else

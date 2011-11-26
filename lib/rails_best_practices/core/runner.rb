@@ -1,11 +1,8 @@
 # encoding: utf-8
-require 'rubygems'
-require 'ripper'
-require 'erubis'
 require 'yaml'
+require 'ripper'
 require 'active_support/inflector'
 require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/try'
 
 module RailsBestPractices
   module Core
@@ -151,12 +148,12 @@ module RailsBestPractices
         # @param [String] filename is the filename of the erb or haml code.
         # @param [String] content is the source code of erb or haml file.
         def parse_erb_or_haml(filename, content)
-          if filename =~ /.*\.erb|.*\.rhtml$/
-            content = Erubis::Eruby.new(content).src
+          if filename =~ /.*\.erb$|.*\.rhtml$/
+            content = Erubis::OnlyRuby.new(content).src
           elsif filename =~ /.*\.haml$/
             begin
               require 'haml'
-              content = Haml::Engine.new(content).precompiled
+              content = Haml::Engine.new(content, {:ugly => true}).precompiled
               # remove \xxx characters
               content.gsub!(/\\\d{3}/, '')
             rescue LoadError
