@@ -153,6 +153,7 @@ module RailsBestPractices
           elsif filename =~ /.*\.haml$/
             begin
               require 'haml'
+              content.gsub!(/:(js_content|sass_content|ie_sass_content).*/m, '')
               content = Haml::Engine.new(content, {:ugly => true}).precompiled
               # remove \xxx characters
               content.gsub!(/\\\d{3}/, '')
