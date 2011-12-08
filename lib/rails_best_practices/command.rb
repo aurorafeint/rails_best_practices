@@ -2,20 +2,26 @@
 require 'optparse'
 
 # Usage: rails_best_practices [options] path
-#    -d, --debug                      Debug mode
+#    -d, --debug                      debug mode
+#        --silent                     silent mode
 #    -f, --format FORMAT              output format
+#        --output-file FILE           output html file for the analyzing result
 #        --without-color              only output plain text without color
 #        --with-textmate              open file by textmate in html format
 #        --with-mvim                  open file by mvim in html format
+#        --with-github GITHUB_NAME    open file on github in html format, GITHUB_NAME is like flyerhzm/rails-bestpractices.com
+#        --with-git                   display git commit and username, only support html format
+#        --with-hg                    display hg commit and username, only support html format
+#        --template TEMPLATE          customize erb template
 #        --vendor                     include vendor files
 #        --spec                       include spec files
 #        --test                       include test files
 #        --features                   include features files
-#    -x, --exclude PATTERNS           Don't analyze files matching a pattern
+#    -x, --exclude PATTERNS           don't analyze files matching a pattern
 #                                     (comma-separated regexp list)
-#    -g, --generate                   Generate configuration yaml
-#    -v, --version                    Show this version
-#    -h, --help                       Show this message
+#    -g, --generate                   generate configuration yaml
+#    -v, --version                    show this version
+#    -h, --help                       show this message
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: rails_best_practices [options] path"
@@ -40,11 +46,36 @@ OptionParser.new do |opts|
     options["with-mvim"] = true
   end
 
+  opts.on("--with-github GITHUB_NAME", "open file on github in html format") do |github_name|
+    options["with-github"] = true
+    options["github-name"] = github_name
+  end
+
+  opts.on("--last-commit-id COMMIT_ID", "last commit id") do |commit_id|
+    options["last-commit-id"] = commit_id
+  end
+
+  opts.on("--with-hg", "display hg commit and username, only support html format") do
+    options["with-hg"] = true
+  end
+
   opts.on("--with-git", "display git commit and username, only support html format") do
     options["with-git"] = true
   end
 
-  ['vendor', 'spec', 'test', 'features'].each do |pattern|
+  opts.on("--template TEMPLATE", "customize erb template") do |template|
+    options["template"] = template
+  end
+
+  opts.on("--output-file OUTPUT_FILE", "output html file for the analyzing result") do |output_file|
+    options["output-file"] = output_file
+  end
+
+  opts.on("--silent", "silent mode") do
+    options["silent"] = true
+  end
+
+  ["vendor", "spec", "test", "features"].each do |pattern|
     opts.on("--#{pattern}", "include #{pattern} files") do
       options[pattern] = true
     end
@@ -63,21 +94,24 @@ OptionParser.new do |opts|
 
   opts.on("-x", "--exclude PATTERNS", "Don't analyze files matching a pattern", "(comma-separated regexp list)") do |list|
     begin
-      options[:exclude] = list.split(/,/).map{|x| Regexp.new x}
+      options["exclude"] = list.split(/,/).map{|x| Regexp.new x}
     rescue RegexpError => e
       raise OptionParser::InvalidArgument, e.message
     end
   end
 
   opts.on("-g", "--generate", "Generate configuration yaml") do
-    options[:generate] = true
+    options["generate"] = true
   end
 
   opts.parse!
 end
 
-if options[:generate]
-  RailsBestPractices.generate(ARGV.first)
+if options["generate"]
+  RailsBestPractices::Analyzer.new(ARGV.first).generate
 else
-  RailsBestPractices.start(ARGV.first, options)
+  analyzer = RailsBestPractices::Analyzer.new(ARGV.first, options)
+  analyzer.analyze
+  analyzer.output
+  exit analyzer.runner.errors.size
 end
