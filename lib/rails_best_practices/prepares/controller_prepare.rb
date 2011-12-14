@@ -55,7 +55,7 @@ module RailsBestPractices
           if "all" == node.arguments.all.first.to_s
             @actions = DEFAULT_ACTIONS
             option_argument = node.arguments.all[1]
-            if :bare_assoc_hash == option_argument.sexp_type && option_argument.hash_value("except")
+            if option_argument && :bare_assoc_hash == option_argument.sexp_type && option_argument.hash_value("except")
               @actions -= option_argument.hash_value("except").to_object
             end
           else
@@ -81,6 +81,7 @@ module RailsBestPractices
         @methods.add_method(current_class_name, method_name, {"file" => node.file, "line" => node.line}, current_access_control)
       end
 
+      # ask Reviews::RemoveUnusedMoethodsInHelperReview to check the controllers who include helpers.
       def after_prepare
         decendants = @helpers.map(&:decendants).flatten
         if decendants.present?
