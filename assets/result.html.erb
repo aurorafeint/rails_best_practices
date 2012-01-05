@@ -50,7 +50,10 @@
     <h1>rails_best_practices output</h1>
     <ul>
       <% @error_types.each do |error_type| %>
-        <li><input type="checkbox" value="<%= error_type.split(':').last %>" /><%= error_type.split(':').last %></li>
+        <li>
+            <input type="checkbox" id="<%= error_type.split(':').last %>" value="<%= error_type.split(':').last %>" />
+            <label for="<%= error_type.split(':').last%>"><%= error_type.split(':').last%></label>
+        </li>
       <% end %>
     </ul>
     <table class="tablesorter">

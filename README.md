@@ -1,11 +1,23 @@
 rails_best_practices
 ====================
 
-[![Build Status](https://secure.travis-ci.org/flyerhzm/rails_best_practices.png)](http://travis-ci.org/flyerhzm/rails_best_practices)
+[![Build Status](https://secure.travis-ci.org/railsbp/rails_best_practices.png)](http://travis-ci.org/railsbp/rails_best_practices)
 
 [![Click here to lend your support to: rails-bestpractices.com and make a donation at www.pledgie.com !](https://www.pledgie.com/campaigns/12057.png?skin_name=chrome)](http://www.pledgie.com/campaigns/12057)
 
-rails_best_practices is a code metric tool to check the quality of rails codes. It supports both activerecord and mongoid from version 1.5.0.
+rails_best_practices is a code metric tool to check the quality of rails codes.
+
+it supports following ORM/ODMs:
+
+* activerecord
+* mongoid
+* mongomapper
+
+following template engines:
+
+* erb
+* haml
+* slim
 
 Usage
 -----
@@ -47,7 +59,7 @@ Resources
 
 Homepage: <http://rails-bestpractices.com>
 
-Github: <http://github.com/flyerhzm/rails_best_practices>
+Github: <http://github.com/railsbp/rails_best_practices>
 
 RDoc: <http://rdoc.rails-bestpractices.com>
 
@@ -55,14 +67,9 @@ Team Blog <http://rails-bestpractices.com/blog/posts>
 
 Google Group: <https://groups.google.com/group/rails_best_practices>
 
-Wiki: <http://github.com/flyerhzm/rails_best_practices/wiki>
+Wiki: <http://github.com/railsbp/rails_best_practices/wiki>
 
-Issue Tracker: <http://github.com/flyerhzm/rails_best_practices/issues>
-
-Donating
---------
-
-<a href='http://www.pledgie.com/campaigns/12057'>Support rails_best_practices at Pledgie</a>
+Issue Tracker: <http://github.com/railsbp/rails_best_practices/issues>
 
 Install
 -------
@@ -218,10 +225,10 @@ We provide rails consulting services, you can contact us by twitter or email.
 
 Follow us on twitter: <http://twitter.com/railsbp>
 
-Send us email: <team@rails-bestpractices.com>
+Send us email: <team@railsbp.com>
 
 
 Copyright © 2009 - 2011 Richard Huang (flyerhzm@gmail.com), released under the MIT license
 
 
-[1]:https://github.com/flyerhzm/rails_best_practices/wiki/How-to-write-your-own-check-list
+[1]:https://github.com/railsbp/rails_best_practices/wiki/How-to-write-your-own-check-list

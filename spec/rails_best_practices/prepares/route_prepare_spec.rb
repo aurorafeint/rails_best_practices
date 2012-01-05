@@ -123,7 +123,7 @@ describe RailsBestPractices::Prepares::RoutePrepare do
         routes.size.should == 14
       end
 
-      it "should add rout with namespace" do
+      it "should add route with namespace" do
         content =<<-EOF
         ActionController::Routing::Routes.draw do |map|
           map.namespace :admin do |admin|
@@ -438,16 +438,21 @@ describe RailsBestPractices::Prepares::RoutePrepare do
         RailsBestPracticesCom::Application.routes.draw do
           resources :posts, :only => [:show] do
             get :list, :on => :collection
+            collection do
+              get :search
+              match :available
+            end
             post :create, :on => :member
-            put :update, :on => :member
-            delete :destroy, :on => :memeber
+            member do
+              put :update
+            end
           end
         end
         EOF
         runner.prepare('config/routes.rb', content)
         routes = RailsBestPractices::Prepares.routes
-        routes.size.should == 5
-        routes.map(&:to_s).should == ["PostsController#show", "PostsController#list", "PostsController#create", "PostsController#update", "PostsController#destroy"]
+        routes.size.should == 6
+        routes.map(&:to_s).should == ["PostsController#show", "PostsController#list", "PostsController#search", "PostsController#available", "PostsController#create", "PostsController#update"]
       end
 
       it "should add route with nested routes" do
@@ -463,7 +468,7 @@ describe RailsBestPractices::Prepares::RoutePrepare do
         routes.size.should == 14
       end
 
-      it "should add rout with namespace" do
+      it "should add route with namespace" do
         content =<<-EOF
         RailsBestPracticesCom::Application.routes.draw do
           namespace :admin do
@@ -476,6 +481,23 @@ describe RailsBestPractices::Prepares::RoutePrepare do
         runner.prepare('config/routes.rb', content)
         routes = RailsBestPractices::Prepares.routes
         routes.map(&:to_s).should == ["Admin::Test::PostsController#index"]
+      end
+
+      it "should add route with scope" do
+        content =<<-EOF
+          RailsBestPracticesCom::Application.routes.draw do
+            scope :module => "admin" do
+              resources :posts, :only => [:index]
+            end
+            resources :discussions, :only => [:index], :module => "admin"
+            scope "/admin" do
+              resources :comments, :only => [:index]
+            end
+          end
+        EOF
+        runner.prepare('config/routes.rb', content)
+        routes = RailsBestPractices::Prepares.routes
+        routes.map(&:to_s).should == ["Admin::PostsController#index", "Admin::DiscussionsController#index", "CommentsController#index"]
       end
     end
 
@@ -532,6 +554,18 @@ describe RailsBestPractices::Prepares::RoutePrepare do
       content =<<-EOF
       RailsBestPracticesCom::Application.routes.draw do
         match ':controller(/:action(/:id(.:format)))'
+      end
+      EOF
+      runner.prepare('config/routes.rb', content)
+      routes = RailsBestPractices::Prepares.routes
+      routes.size.should == 0
+    end
+
+    it "should do nothing for redirect" do
+      content =<<-EOF
+      RailsBestPracticesCom::Application.routes.draw do
+        match "/stories/:name" => redirect("/posts/%{name}")
+        match "/stories" => redirect {|p, req| "/posts/\#{req.subdomain}" }
       end
       EOF
       runner.prepare('config/routes.rb', content)

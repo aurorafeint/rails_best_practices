@@ -31,6 +31,8 @@ module RailsBestPractices
           else
             if :bare_assoc_hash == first_argument.sexp_type
               route_node = first_argument.hash_values.first
+              # do not parse redirect block
+              return if :method_add_arg == route_node.sexp_type
               controller_name, action_name = route_node.to_s.split('#')
             else
               controller_name, action_name = first_argument.to_s.split('/')
@@ -39,17 +41,26 @@ module RailsBestPractices
           end
         when "match", "root"
           options = node.arguments.all.last
-          return if :string_literal == options.sexp_type
-          if options.hash_value("controller").present?
-            controller_name = options.hash_value("controller").to_s
-            action_name = options.hash_value("action").present? ? options.hash_value("action").to_s : "*"
-            @routes.add_route(current_namespaces, controller_name, action_name)
-          else
-            route_node = options.hash_values.find { |value_node| :string_literal == value_node.sexp_type && value_node.to_s.include?('#') }
-            if route_node.present?
-              controller_name, action_name = route_node.to_s.split('#')
-              @routes.add_route(current_namespaces, controller_name.underscore, action_name)
+          case options.sexp_type
+          when :bare_assoc_hash
+            if options.hash_value("controller").present?
+              return if :regexp_literal == options.hash_value("controller").sexp_type
+              controller_name = options.hash_value("controller").to_s
+              action_name = options.hash_value("action").present? ? options.hash_value("action").to_s : "*"
+              @routes.add_route(current_namespaces, controller_name, action_name)
+            else
+              route_node = options.hash_values.find { |value_node| :string_literal == value_node.sexp_type && value_node.to_s.include?('#') }
+              if route_node.present?
+                controller_name, action_name = route_node.to_s.split('#')
+                @routes.add_route(current_namespaces, controller_name.underscore, action_name)
+              end
             end
+          when :string_literal, :symbol_literal
+            if current_controller_name
+              @routes.add_route(current_namespaces, current_controller_name, options.to_s)
+            end
+          else
+            # do nothing
           end
         else
           # nothing to do
@@ -77,20 +88,34 @@ module RailsBestPractices
 
       # remember the namespace.
       def start_method_add_block(node)
-        if "namespace" == node.message.to_s
+        case node.message.to_s
+        when "namespace"
           @namespaces << node.arguments.all.first.to_s
-        elsif "with_options" == node.message.to_s
+        when "scope"
+          if node.arguments.all.last.hash_value("module").present?
+            @namespaces << node.arguments.all.last.hash_value("module").to_s
+          end
+        when "with_options"
           argument = node.arguments.all.last
           if :bare_assoc_hash == argument.sexp_type && argument.hash_value("controller").present?
             @controller_name = argument.hash_value("controller").to_s
           end
+        else
+          # do nothing
         end
       end
 
       # end of namespace call.
       def end_method_add_block(node)
-        if "namespace" == node.message.to_s
+        case node.message.to_s
+        when "namespace"
           @namespaces.pop
+        when "scope"
+          if node.arguments.all.last.hash_value("module").present?
+            @namespaces.pop
+          end
+        else
+          # do nothing
         end
       end
 
@@ -101,6 +126,9 @@ module RailsBestPractices
           resource_names.each do |resource_name|
             @controller_name = node.arguments.all.first.to_s
             options = node.arguments.all.last
+            if options.hash_value("module").present?
+              @namespaces << options.hash_value("module").to_s
+            end
             if options.hash_value("controller").present?
               @controller_name = options.hash_value("controller").to_s
             end
@@ -129,6 +157,9 @@ module RailsBestPractices
               action_names.each do |action_name|
                 @routes.add_route(current_namespaces, current_controller_name, action_name)
               end
+            end
+            if options.hash_value("module").present?
+              @namespaces.pop
             end
           end
         end
